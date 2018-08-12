@@ -2,8 +2,20 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
+const data = require('./client/src/items.json');
+
 // API calls
 app.get('/api/hello', (req, res) => {
+  res.send({ express: 'Hello From Express' });
+});
+app.get('/suggestions', (req, res) => {
+  res.json(data);
+  // res.send({ express: 'Hello From Express' });
+});
+app.post('/kartItem', (req, res) => {
+  res.send({ express: 'Hello From Express' });
+});
+app.get('/kart', (req, res) => {
   res.send({ express: 'Hello From Express' });
 });
 if (process.env.NODE_ENV === 'production') {
