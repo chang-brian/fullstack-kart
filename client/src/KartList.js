@@ -5,12 +5,12 @@ const KartList = ({ KartItems }) => {
 	return (
 		<div>
 			{
-				KartItems.map((item, i) => {
-					console.log(KartItems);
+				Object.keys(KartItems).map((item, i) => {
 					return (
 						<KartItem
 							key={i}
-							item={KartItems[i]}
+							item={item}
+							count={KartItems[item]}
 						/>
 					);
 				})
