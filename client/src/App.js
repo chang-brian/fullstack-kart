@@ -4,10 +4,7 @@ import './App.css';
 import KartList from './KartList';
 import Autosuggest from 'react-autosuggest';
 import { Button } from 'reactstrap';
-
-// I noticed that this works as well. Would this be a better option
-// if I am not changing the list of suggestions?
-// const items = require('./items.json');
+import theme from './theme.js';
 
 let items = [];
 
@@ -51,6 +48,18 @@ class App extends Component {
     this.setState({ value: newValue });
   };
 
+  onSuggestionsFetchRequested = ({ value }) => {
+    this.setState({
+      suggestions: getSuggestions(value)
+    });
+  };
+
+  onSuggestionsClearRequested = () => {
+    this.setState({
+      suggestions: []
+    });
+  };
+
   // Update dictionary and localStorage
   updateKart = () => {
     let kart = this.state.kart;
@@ -76,32 +85,20 @@ class App extends Component {
     return { [value]: 1 };
   };
 
-  // When the 'Add' button is clicked
-  onAdd = async () => {
-    let addedItem = await this.updateKart();
-    let res = await this.callApiKartItem(addedItem);
-    return res;
-  };
+  // API call to get suggestions
+  callApiGetSuggestions = async () => {
+    const res = await fetch('/suggestions');
+    const body = await res.json();
 
-  onSuggestionsFetchRequested = ({ value }) => {
-    this.setState({
-      suggestions: getSuggestions(value)
-    });
-  };
-
-  onSuggestionsClearRequested = () => {
-    this.setState({
-      suggestions: []
-    });
+    return body;
   };
 
   // API call to post item in kart
-  callApiKartItem = (KartItems) => {
+  callApiKartItem = async (KartItems) => {
     fetch('/kartItem', {
       method: 'post',
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'content-type': 'application/json'
       },
       body: JSON.stringify(KartItems)
     });
@@ -112,44 +109,96 @@ class App extends Component {
   callApiGetKart = async () => {
     let data = (localStorage.getItem('kart') ? localStorage.getItem('kart') : '{}');
     data = JSON.parse(data);
-
     // const res = await fetch('/kart');
     // const body = await res.json();
-
     return data;
   };
 
-  // API call to get suggestions
-  callApiGetSuggestions = async () => {
-    const response = await fetch('/suggestions');
-    const body = await response.json();
+  // When the 'Add' button is clicked
+  onAdd = async () => {
+    let item = await this.updateKart();
+    let res = await this.callApiKartItem(item);
+    return res;
+  };
 
-    if (response.status !== 200) throw Error(body.message);
+  // When the 'Submit' button is clicked
+  onSubmit = () => {
+    let kart = this.state.kart;
 
-    return body;
+    let request = require('request');
+
+    let options = {
+      url: 'https://kart.example.com/submit',
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify(kart)
+    };
+
+    request(options, (err, res, body) => {
+      if (!err && res.statusCode === 200) {
+        console.log(body);
+      } else {
+        console.log(err);
+      }
+    });
   };
 
   render() {
     const { value, suggestions, kart } = this.state;
 
     const inputProps = {
-      placeholder: 'Type an item',
+      placeholder: 'Enter an item',
       value,
       onChange: this.onChange
     };
 
     return (
       <div>
-        <Autosuggest
-          suggestions={suggestions}
-          onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-          onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-          getSuggestionValue={getSuggestionValue}
-          renderSuggestion={renderSuggestion}
-          inputProps={inputProps}
-        />
-        <Button color="success" onClick={this.onAdd}>Add</Button>
-        <KartList KartItems={kart} />
+        <header className="bg-success p-3">
+          <div className="text-white text-center h3">
+            FullStack Kart
+          </div>
+        </header>
+        <div className="row mb-5">
+          <div className="col-md-2 bg-secondary">
+            <div className="text-white h4 pl-4 pt-4">
+              Home
+            </div>
+          </div>
+          <div className="col-md-10 bg-light">
+            <div className="row mb-5 text-center">
+              <div className="col-md-12 my-5">
+                <div className="d-inline-block text-left">
+                  <Autosuggest
+                    suggestions={suggestions}
+                    onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+                    onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+                    getSuggestionValue={getSuggestionValue}
+                    renderSuggestion={renderSuggestion}
+                    inputProps={inputProps}
+                    theme={theme}
+                  />
+                </div>
+                <div className="d-inline-block">
+                  <Button className="d-inline-block" color="success" size="lg" onClick={this.onAdd}>Add</Button>
+                </div>
+              </div>
+              <div className="col-md-12">
+                <div className="h5 mx-5 mt-5 text-left">
+                  MY KART
+                </div>
+                <div className="list-group mx-5 mb-5 text-left">
+                  <KartList KartItems={kart} />
+                </div>
+                <div className="text-center">
+                  <Button color="success" onClick={this.onSubmit}>Submit</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

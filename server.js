@@ -4,6 +4,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const port = process.env.PORT || 5000;
 const data = require('./client/src/items.json');
+const jsonParser = bodyParser.json();
 
 // API call to get suggestions
 app.get('/suggestions', (req, res) => {
@@ -11,7 +12,6 @@ app.get('/suggestions', (req, res) => {
 });
 
 // API call to post item in kart
-let jsonParser = bodyParser.json();
 app.post('/kartItem', jsonParser, (req, res) => {
     let body = req.body;
     res.json(body);
@@ -19,8 +19,7 @@ app.post('/kartItem', jsonParser, (req, res) => {
 
 // API call to get items in kart
 app.get('/kart', (req, res) => {
-    // let kart = localStorage.getItem('kart');
-    // res.json(JSON.parse(kart));
+    
 });
 
 if (process.env.NODE_ENV === 'production') {
